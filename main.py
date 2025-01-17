@@ -142,7 +142,7 @@ if __name__ == "__main__":
     with open(f'{translation_model_name}{tmp_file_suffix}_translated_prompts.pkl', 'rb') as f:
         translated_prompts = pickle.load(f)
 
-    add_instruction = False  # Depends on the model, does it need additional instructions?
+    add_instruction = False  # Depends on the model: does it need additional instructions?
     answers, prompts_list = get_answers(model, tokenizer, translated_prompts, instruction, batch_size, add_instruction)
 
     with open(f'{folder_name}/prompt_answers.pkl', 'wb') as f:
