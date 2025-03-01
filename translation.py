@@ -36,9 +36,8 @@ def auxiliary_to_target(extracted_answers, aux_langs, nllb, nllb_tokenizer, max_
     return answer_translations
 
 
-def load_translation_model():
-    device = "cuda"
-    translation_model = "nllb-200-distilled-1.3B-int8"
+def load_translation_model(device="cpu"):
+    translation_model = "../../../../nllb-200-distilled-1.3B-int8"
     nllb = ctranslate2.Translator(translation_model, device)
     nllb_tokenizer = AutoTokenizer.from_pretrained("facebook/nllb-200-distilled-1.3B")
     return nllb, nllb_tokenizer

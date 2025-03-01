@@ -63,10 +63,10 @@ def chunk(lst, n):
         yield lst[i:i + n]
 
 
-def load_models(prompt_model):
+def load_model(prompt_model):
     tokenizer = AutoTokenizer.from_pretrained(prompt_model)
     model = AutoModelForCausalLM.from_pretrained(prompt_model, device_map="auto")
-    model.cuda()
+    # model.cuda()
 
     sglang_params = {"temperature": 0.7, "top_p": 0.95, "max_new_tokens": 32}
     llm = Engine(model_path=prompt_model, mem_fraction_static=0.8, dtype=torch.bfloat16)

@@ -2,7 +2,7 @@ import os
 import time
 import torch
 from data_processing import load_data, save_to_pickle, load_pickle, target_to_auxiliary
-from model_utils import load_models, prompt_model_sg
+from prompting import load_model, prompt_model_sg
 from translation import load_translation_model, auxiliary_to_target
 from metrics import load_similarity_model, process_answers, calculate_metrics, NumpyEncoder
 from visualization import load_all_results, plot_composite_accuracy_comparison, plot_coverage_accuracy_curves, \
@@ -13,25 +13,25 @@ from config import *
 
 
 def main():
-    # Load data
+    print("Loading the eval set...")
     tgt_lang_data, aux_langs_dict = load_data(n_samples=n_samples)
 
     # Create directories
-    for _, (lang, _) in tgt_lang_data.values():
+    for _, (lang, _) in tgt_lang_data.items():
         os.makedirs(f"{base_dir}/{lang}/intermediate_files", exist_ok=True)
         os.makedirs(f"{base_dir}/{lang}/results", exist_ok=True)
 
     # Load models
-    nllb, nllb_tokenizer = load_translation_model()
+    nllb, nllb_tokenizer = load_translation_model(device)
     sentence_transformer = load_similarity_model()
 
     # Process each model
     for prompt_model in prompt_models:
         prompt_model_name = prompt_model.split("/")[1]
-        model, tokenizer, sg_generate = load_models(prompt_model)
+        model, tokenizer, sg_generate = load_model(prompt_model)
 
         # Step 1: Prepare prompts in auxiliary languages
-        print("Preparing prompts in auxiliary languages...")
+        print("Translating prompts to auxiliary languages...")
         for tgt_lang, (lang, (prompts, options, answers)) in tgt_lang_data.items():
             for task, aux_langs in aux_langs_dict.items():
                 max_length = 384 if task == "low_res" else 256
