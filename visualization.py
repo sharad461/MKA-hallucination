@@ -65,7 +65,7 @@ def load_all_results(base_dir, models):
     return results_data
 
 
-def plot_composite_accuracy_comparison(results_data, task_types=['low_res', 'mid_res', 'high_res']):
+def plot_composite_accuracy_comparison(results_data, task_types=['low', 'mid', 'high']):
     fig = plt.figure(figsize=(14, 10))
     gs = fig.add_gridspec(2, 24)
     axes = [fig.add_subplot(gs[0, 0:11]), fig.add_subplot(gs[0, 13:]), fig.add_subplot(gs[1, 6:17]),
@@ -104,7 +104,7 @@ def plot_composite_accuracy_comparison(results_data, task_types=['low_res', 'mid
     plt.close()
 
 
-def plot_coverage_accuracy_curves(results_data, task_types=['low_res', 'mid_res', 'high_res']):
+def plot_coverage_accuracy_curves(results_data, task_types=['low', 'mid', 'high']):
     fig = plt.figure(figsize=(14, 10))
     gs = fig.add_gridspec(2, 24)
     axes = [fig.add_subplot(gs[0, 0:11]), fig.add_subplot(gs[0, 13:]), fig.add_subplot(gs[1, 6:17]),

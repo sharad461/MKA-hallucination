@@ -33,7 +33,8 @@ def find_most_probable_answer(answers, n_gram_range=(2, 3)):
     return np.argmax(np.mean(similarities, axis=1))
 
 
-def process_answers(model_answers_translated, prompts, options, true_answers, prompts_list, model_responses, aux_langs,
+def process_answers(model_answers_translated, prompts, options, true_answers, prompts_list, model_responses, tgt_lang,
+                    aux_langs,
                     sentence_transformer):
     model_answers_by_prompt = list(zip(*model_answers_translated))
 
@@ -42,7 +43,7 @@ def process_answers(model_answers_translated, prompts, options, true_answers, pr
     options_map = {"A": 0, "B": 1, "C": 2, "D": 3}
 
     for i, (answers, correct_answer) in enumerate(zip(model_answers_by_prompt, true_answers)):
-        true_answer = options_map[correct_answer] if "eng_Latn" not in prompts_list[i][0] else correct_answer
+        true_answer = options_map[correct_answer] if tgt_lang != "eng_Latn" else correct_answer
         true_answer_string = options[i][true_answer]
 
         final_answers_set = list(answers).copy()
