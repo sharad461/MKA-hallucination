@@ -7,7 +7,7 @@ base_dir = f"MKA-{n_samples}"
 similarity_model = 'paraphrase-multilingual-mpnet-base-v2'
 answer_similarity_threshold = 0.85
 
-prompt_instruction = "Given below is a question and possible answers. Choose the correct answer.\n\n"
+prompt_instruction = "Given below is a question, possible choices and the correct answer.\n\n"
 
 import torch
 

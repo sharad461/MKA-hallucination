@@ -3,7 +3,7 @@ from sglang import Engine
 from config import *
 
 
-def generate_text_batched(model, tokenizer, prompts, batch_size=8, max_length=768, max_new_tokens=64, temperature=0.7):
+def generate_text_batched(model, tokenizer, prompts, batch_size=8, max_length=768, max_new_tokens=32, temperature=0.7):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     all_generated_texts = []
 
