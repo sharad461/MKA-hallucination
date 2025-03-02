@@ -13,11 +13,10 @@ from config import *
 
 
 def main(n_samples, seed):
-    print("Loading the eval set...")
+    print(f"Loading the eval set (seed {seed})...")
     tgt_lang_data, aux_langs_dict = load_data(seed=seed, n_samples=n_samples)
 
     base_dir = f"MKA-{n_samples}"
-
     for _, (lang, _) in tgt_lang_data.items():
         os.makedirs(f"{base_dir}/{lang}/intermediate_files", exist_ok=True)
         os.makedirs(f"{base_dir}/{lang}/results", exist_ok=True)

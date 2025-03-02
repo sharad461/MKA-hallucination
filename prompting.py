@@ -1,9 +1,10 @@
 from tqdm import tqdm
 from sglang import Engine
+import torch
 from config import *
 
 
-def generate_text_batched(model, tokenizer, prompts, batch_size=8, max_length=768, max_new_tokens=32, temperature=0.7):
+def generate_text_batched(model, tokenizer, prompts, batch_size=8, max_length=768, max_new_tokens=64, temperature=0.7):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     all_generated_texts = []
 
@@ -31,6 +32,7 @@ def prompt_model_sg(prompts, chunks, sg_generate, add_instruction=False):
     instruction = prompt_instruction if add_instruction else ""
     prompts_list = [list(item) for item in zip(*prompts)]
     prompts_flatten = [instruction + item for sublist in prompts_list for item in sublist]
+    # print(prompts_flatten[:3])
 
     answers = sg_generate(prompts_flatten)
     answers = [answer["text"].strip() for answer in answers]
