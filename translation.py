@@ -2,6 +2,7 @@ import torch
 from tqdm import tqdm
 import ctranslate2
 from transformers import AutoTokenizer
+from config import *
 
 
 def translate_to_tgt_batched_ctranslate(source, src_lang, tgt_lang, nllb, nllb_tokenizer, batch_size=32,

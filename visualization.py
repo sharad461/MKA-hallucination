@@ -159,10 +159,13 @@ def calculate_auc_metrics(results_data):
             for task_type, task_data in model_data.items():
                 coverage = 1 - np.array(task_data['abstention_rates'])
                 sort_idx = np.argsort(coverage)
+
                 coverage_sorted = coverage[sort_idx]
                 accuracies_sorted = np.array(task_data['answered_accuracies'])[sort_idx]
+
                 auc_score = auc(coverage_sorted, accuracies_sorted)
                 auc_metrics[target_lang][model][task_type] = auc_score
+
                 results_data[target_lang][model][task_type]['coverage'] = coverage.tolist()
                 results_data[target_lang][model][task_type]['auc_score'] = auc_score
     return auc_metrics

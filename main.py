@@ -12,9 +12,9 @@ from tqdm import tqdm
 from config import *
 
 
-def main():
+def main(n_samples, seed):
     print("Loading the eval set...")
-    tgt_lang_data, aux_langs_dict = load_data(n_samples=n_samples)
+    tgt_lang_data, aux_langs_dict = load_data(seed=seed, n_samples=n_samples)
 
     for _, (lang, _) in tgt_lang_data.items():
         os.makedirs(f"{base_dir}/{lang}/intermediate_files", exist_ok=True)
@@ -23,28 +23,28 @@ def main():
     nllb, nllb_tokenizer = load_translation_model(device)
     sentence_transformer = load_similarity_model()
 
+    print("Translating prompts to auxiliary languages...")
+    for tgt_lang, (lang, (prompts, options, answers)) in tgt_lang_data.items():
+        for task, aux_langs in aux_langs_dict.items():
+            print(tgt_lang, " ==> ", aux_langs)
+
+            max_length = 384 if task == "low_res" else 256
+            translated_prompts, translated_df = target_to_auxiliary(
+                prompts, options, answers, tgt_lang, aux_langs, max_length,
+                lambda *args, **kwargs: translate_to_tgt_batched_ctranslate(*args, nllb=nllb,
+                                                                            nllb_tokenizer=nllb_tokenizer, **kwargs)
+            )
+            translated_df.to_json(
+                f'{base_dir}/{lang}/intermediate_files/{task}_{n_samples}_translated_prompts.jsonl',
+                orient='records', lines=True)
+            save_to_pickle(translated_prompts,
+                           f'{base_dir}/{lang}/intermediate_files/{task}_{n_samples}_translated_prompts.pkl')
+            torch.cuda.empty_cache()
+
     for prompt_model in prompt_models:
         prompt_model_name = prompt_model.split("/")[1]
 
-        print("Translating prompts to auxiliary languages...")
-        for tgt_lang, (lang, (prompts, options, answers)) in tgt_lang_data.items():
-            for task, aux_langs in aux_langs_dict.items():
-                print(tgt_lang, " ==> ", aux_langs)
-
-                max_length = 384 if task == "low_res" else 256
-                translated_prompts, translated_df = target_to_auxiliary(
-                    prompts, options, answers, tgt_lang, aux_langs, max_length,
-                    lambda *args, **kwargs: translate_to_tgt_batched_ctranslate(*args, nllb=nllb,
-                                                                                nllb_tokenizer=nllb_tokenizer, **kwargs)
-                )
-                translated_df.to_json(
-                    f'{base_dir}/{lang}/intermediate_files/{task}_{n_samples}_translated_prompts.jsonl',
-                    orient='records', lines=True)
-                save_to_pickle(translated_prompts,
-                               f'{base_dir}/{lang}/intermediate_files/{task}_{n_samples}_translated_prompts.pkl')
-                torch.cuda.empty_cache()
-
-        sg_generate = load_model(prompt_model)
+        llm, sg_generate = load_model(prompt_model)
 
         print(f"Prompting the model: {prompt_model_name}...")
         for tgt_lang, (lang, _) in tqdm(tgt_lang_data.items()):
@@ -57,6 +57,10 @@ def main():
                 save_to_pickle(answers,
                                f'{base_dir}/{lang}/intermediate_files/{task}_{prompt_model_name}_{n_samples}_prompt_answers.pkl')
                 torch.cuda.empty_cache()
+
+        llm.shutdown()
+
+        time.sleep(5)
 
         print("Translating the answers back to target languages...")
         for tgt_lang, (lang, _) in tgt_lang_data.items():
@@ -71,7 +75,7 @@ def main():
                 torch.cuda.empty_cache()
 
         print("Processing results and running analysis...")
-        for tgt_lang, (lang, (prompts, options, true_answers)) in tgt_lang_data.items():
+        for tgt_lang, (lang, (prompts, options, true_answers)) in tqdm(tgt_lang_data.items()):
             for task, aux_langs in aux_langs_dict.items():
                 model_answers_translated = load_pickle(
                     f'{base_dir}/{lang}/intermediate_files/{task}_{prompt_model_name}_{n_samples}_answer_translations.pkl').values()
@@ -116,4 +120,12 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+
+    if len(sys.argv) >= 0:
+        n_samples = int(sys.argv[1])
+        seed = int(sys.argv[2])
+
+        main(n_samples, seed)
+    else:
+        print("Not enough arguments provided")

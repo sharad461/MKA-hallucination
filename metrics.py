@@ -120,5 +120,5 @@ def calculate_metrics(confidence_scores, ground_truths, confidence_cutoff):
 
 
 def load_similarity_model():
-    similarity_model = 'paraphrase-multilingual-mpnet-base-v2'
+    # similarity_model = 'paraphrase-multilingual-mpnet-base-v2'
     return SentenceTransformer(similarity_model)
