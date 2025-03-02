@@ -11,7 +11,7 @@ pip install "sglang[all]>=0.4.2.post2" --find-links https://flashinfer.ai/whl/cu
 ### Get the translation model
 Quantize if necessary using `--quantization int8`
 ```shell
-ct2-transformers-converter --model facebook/nllb-200-distilled-1.3B --output_dir nllb-200-distilled-1.3B-int8
+ct2-transformers-converter --model facebook/nllb-200-distilled-1.3B --output_dir nllb-200-distilled-1.3B
 ```
 
 ### Log into Huggingface for gated model access

@@ -25,16 +25,22 @@ def main(n_samples, seed):
     nllb, nllb_tokenizer = load_translation_model(device)
     sentence_transformer = load_similarity_model()
 
-    prompt_model_accuracies = {}
-    for prompt_model in prompt_models:
+    print("Running the baseline without the pipeline...")
+    baseline_prompts = []
+    for tgt_lang, (lang_folder, (questions, options, answers)) in tgt_lang_data.items():
+        baseline_prompts.append(
+            [f"Question: {p[:512]}\n\nChoices: {o[:512]}\n\nCorrect Answer: " for p, o in zip(questions, options)])
+
+    for prompt_model in tqdm(prompt_models):
         prompt_model_name = prompt_model.split("/")[1]
         llm, sg_generate = load_model(prompt_model)
-        prompt_model_accuracies[prompt_model] = baseline_run(prompt_model, tgt_lang_data)
+        prompt_model_accuracies = baseline_run(baseline_prompts, prompt_model_name, tgt_lang_data,
+                                                             sg_generate,
+                                                             sentence_transformer)
         llm.shutdown()
-        time.sleep(5)
-
-    with open(f"Baseline/results_{prompt_model_name}.json","w") as f:
-        json.dump(prompt_model_accuracies, f, cls=NumpyEncoder)
+        with open(f"Baseline/results_{prompt_model_name}.json", "w") as f:
+            json.dump(prompt_model_accuracies, f, cls=NumpyEncoder)
+        time.sleep(3)
 
     print("Translating prompts to auxiliary languages...")
     for tgt_lang, (lang, (prompts, options, answers)) in tgt_lang_data.items():
@@ -130,20 +136,14 @@ def main(n_samples, seed):
     plot_coverage_accuracy_curves(results)
 
 
-def baseline_run(prompt_model_name, tgt_lang_data, ):
-    prompts = []
-
+def baseline_run(prompts, prompt_model_name, tgt_lang_data, sg_generate, sentence_transformer):
     def get_model_correctness(model_answers, true_answers):
-        return get_similarity(model_answers, true_answers) > answer_similarity_threshold
+        return get_similarity(model_answers, true_answers, sentence_transformer) > answer_similarity_threshold
 
-    for tgt_lang, (lang_folder, (questions, options, answers)) in tgt_lang_data.items():
-        prompts.append(
-            [f"Question: {p[:512]}\n\nChoices: {o[:512]}\n\nCorrect Answer: " for p, o in zip(questions, options)])
-
-    answers, prompts_list = prompt_model_sg(prompts, 6, add_instruction=True)
+    answers, prompts_list = prompt_model_sg(prompts, 6, sg_generate, add_instruction=True)
 
     save_to_pickle(answers, f"Baseline/{prompt_model_name}_responses_{n_samples}.pkl")
-    answers = load_pickle(f"Baseline/{prompt_model_name}_responses_{n_samples}.pkl")
+    # answers = load_pickle(f"Baseline/{prompt_model_name}_responses_{n_samples}.pkl")
 
     model_answers_language_wise = list(zip(*answers))
 

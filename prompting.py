@@ -68,7 +68,7 @@ def load_model(prompt_model):
     # model.cuda()
 
     sglang_params = {"temperature": 0.7, "top_p": 0.95, "max_new_tokens": 32}
-    llm = Engine(model_path=prompt_model, mem_fraction_static=0.75, dtype=torch.bfloat16)
+    llm = Engine(model_path=prompt_model, mem_fraction_static=0.8, dtype=torch.float16) # gemma-2-27b-gptq-int4 requires float, others can do bfloat
     sg_generate = lambda prompts: llm.generate(prompts, sglang_params)
 
     return llm, sg_generate
