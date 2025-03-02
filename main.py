@@ -3,7 +3,7 @@ import time
 from data_processing import load_data, save_to_pickle, load_pickle, target_to_auxiliary
 from prompting import load_model, prompt_model_sg
 from translation import load_translation_model, auxiliary_to_target, translate_to_tgt_batched_ctranslate
-from metrics import load_similarity_model, process_answers, calculate_metrics, NumpyEncoder
+from metrics import load_similarity_model, process_answers, calculate_metrics, NumpyEncoder, get_similarity
 from visualization import load_all_results, plot_composite_accuracy_comparison, plot_coverage_accuracy_curves, \
     calculate_auc_metrics
 import json
@@ -20,9 +20,21 @@ def main(n_samples, seed):
     for _, (lang, _) in tgt_lang_data.items():
         os.makedirs(f"{base_dir}/{lang}/intermediate_files", exist_ok=True)
         os.makedirs(f"{base_dir}/{lang}/results", exist_ok=True)
+        os.makedirs(f"Baseline/", exist_ok=True)
 
     nllb, nllb_tokenizer = load_translation_model(device)
     sentence_transformer = load_similarity_model()
+
+    prompt_model_accuracies = {}
+    for prompt_model in prompt_models:
+        prompt_model_name = prompt_model.split("/")[1]
+        llm, sg_generate = load_model(prompt_model)
+        prompt_model_accuracies[prompt_model] = baseline_run(prompt_model, tgt_lang_data)
+        llm.shutdown()
+        time.sleep(5)
+
+    with open(f"Baseline/results_{prompt_model_name}.json","w") as f:
+        json.dump(prompt_model_accuracies, f, cls=NumpyEncoder)
 
     print("Translating prompts to auxiliary languages...")
     for tgt_lang, (lang, (prompts, options, answers)) in tgt_lang_data.items():
@@ -44,7 +56,6 @@ def main(n_samples, seed):
 
     for prompt_model in prompt_models:
         prompt_model_name = prompt_model.split("/")[1]
-
         llm, sg_generate = load_model(prompt_model)
 
         print(f"Prompting the model: {prompt_model_name}...")
@@ -60,7 +71,6 @@ def main(n_samples, seed):
                 torch.cuda.empty_cache()
 
         llm.shutdown()
-
         time.sleep(5)
 
         print("Translating the answers back to target languages...")
@@ -118,6 +128,47 @@ def main(n_samples, seed):
     plot_composite_accuracy_comparison(results)
     calculate_auc_metrics(results)
     plot_coverage_accuracy_curves(results)
+
+
+def baseline_run(prompt_model_name, tgt_lang_data, ):
+    prompts = []
+
+    def get_model_correctness(model_answers, true_answers):
+        return get_similarity(model_answers, true_answers) > answer_similarity_threshold
+
+    for tgt_lang, (lang_folder, (questions, options, answers)) in tgt_lang_data.items():
+        prompts.append(
+            [f"Question: {p[:512]}\n\nChoices: {o[:512]}\n\nCorrect Answer: " for p, o in zip(questions, options)])
+
+    answers, prompts_list = prompt_model_sg(prompts, 6, add_instruction=True)
+
+    save_to_pickle(answers, f"Baseline/{prompt_model_name}_responses_{n_samples}.pkl")
+    answers = load_pickle(f"Baseline/{prompt_model_name}_responses_{n_samples}.pkl")
+
+    model_answers_language_wise = list(zip(*answers))
+
+    options_map = {"A": 0, "B": 1, "C": 2, "D": 3}
+
+    accuracies = {}
+
+    for i, (tgt_lang, (lang_folder, (prompts, options, true_answers))) in enumerate(tgt_lang_data.items()):
+        model_answers = list(model_answers_language_wise[i])
+
+        true_answers_idx = []
+        for correct in true_answers:
+            if tgt_lang != "eng_Latn":
+                true_answers_idx.append(options_map[correct])
+            else:
+                true_answers_idx.append(correct)
+
+        true_answers_strings = [options[i][idx] for i, idx in enumerate(true_answers_idx)]
+
+        model_correctness = get_model_correctness(model_answers, true_answers_strings)
+        accuracy = np.mean(model_correctness)
+
+        accuracies[tgt_lang] = accuracy
+
+    return accuracies
 
 
 if __name__ == "__main__":
