@@ -18,4 +18,4 @@ import torch
 
 device = "cuda" #if torch.cuda.is_available() else "cpu"
 
-translation_model_path = "../nllb-200-distilled-1.3B-int8"
+translation_model_path = "../nllb-200-distilled-1.3B"

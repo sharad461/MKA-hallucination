@@ -3,6 +3,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sentence_transformers import SentenceTransformer
 from sklearn.feature_extraction.text import CountVectorizer
 import json, random
+from collections import Counter
 from config import *
 
 
@@ -33,6 +34,15 @@ def find_most_probable_answer(answers, n_gram_range=(2, 3)):
     return np.argmax(np.mean(similarities, axis=1))
 
 
+def find_common(x):
+    # Not necessarily the best way to handle because responses are sometimes like
+    # empty vocabulary; perhaps the documents only contain stop words: ('7', '7', '7', '7', '7', '7')
+    # empty vocabulary; perhaps the documents only contain stop words: ('4', '8', '4', '6', '4', '4')
+    # empty vocabulary; perhaps the documents only contain stop words: ('5', '5', '5', '5', '5', '5')
+    data = Counter(x)
+    return x.index(data.most_common(1)[0][0])
+
+
 def process_answers(model_answers_translated, prompts, options, true_answers, prompts_list, model_responses, tgt_lang,
                     aux_langs,
                     sentence_transformer):
@@ -51,7 +61,7 @@ def process_answers(model_answers_translated, prompts, options, true_answers, pr
             correct_idx_in_answers = find_most_probable_answer(answers)
         except ValueError as e:
             print(f"{e}: {answers}")
-            correct_idx_in_answers = random.randrange(len(answers))
+            correct_idx_in_answers = random.randrange(len(answers))  # use find_common(answers) if you want
 
         selected_model_answer = final_answers_set.pop(correct_idx_in_answers)
 
