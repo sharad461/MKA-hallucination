@@ -51,8 +51,7 @@ def main(n_samples, seed):
             translated_prompts, translated_df = target_to_auxiliary(
                 prompts, options, answers, tgt_lang, aux_langs, max_length,
                 lambda *args, **kwargs: translate_to_tgt_batched_ctranslate(*args, nllb=nllb,
-                                                                            nllb_tokenizer=nllb_tokenizer,
-                                                                            batch_size=256, **kwargs)
+                                                                            nllb_tokenizer=nllb_tokenizer, **kwargs)
             )
             translated_df.to_json(
                 f'{base_dir}/{lang}/intermediate_files/{task}_{n_samples}_translated_prompts.jsonl',
