@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 from sentence_transformers import SentenceTransformer
 from sklearn.feature_extraction.text import CountVectorizer
-import json
+import json, random
 from config import *
 
 
@@ -47,7 +47,12 @@ def process_answers(model_answers_translated, prompts, options, true_answers, pr
         true_answer_string = options[i][true_answer]
 
         final_answers_set = list(answers).copy()
-        correct_idx_in_answers = find_most_probable_answer(answers)
+        try:
+          correct_idx_in_answers = find_most_probable_answer(answers)
+        except ValueError as e:
+          print(f"{e}: {answers}")
+          correct_idx_in_answers = random.randrange(len(answers))
+
         selected_model_answer = final_answers_set.pop(correct_idx_in_answers)
 
         answer_similarity = get_similarity([selected_model_answer] * len(final_answers_set), final_answers_set,

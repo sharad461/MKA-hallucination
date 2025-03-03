@@ -51,7 +51,7 @@ def main(n_samples, seed):
             translated_prompts, translated_df = target_to_auxiliary(
                 prompts, options, answers, tgt_lang, aux_langs, max_length,
                 lambda *args, **kwargs: translate_to_tgt_batched_ctranslate(*args, nllb=nllb,
-                                                                            nllb_tokenizer=nllb_tokenizer, **kwargs)
+                                                                            nllb_tokenizer=nllb_tokenizer, batch_size=256, **kwargs)
             )
             translated_df.to_json(
                 f'{base_dir}/{lang}/intermediate_files/{task}_{n_samples}_translated_prompts.jsonl',
@@ -86,7 +86,7 @@ def main(n_samples, seed):
                 answers = load_pickle(
                     f'{base_dir}/{lang}/intermediate_files/{task}_{prompt_model_name}_{n_samples}_prompt_answers.pkl')
                 max_length = 384 if task == "low_res" else 256
-                answer_translations = auxiliary_to_target(answers, aux_langs, nllb, nllb_tokenizer, max_length)
+                answer_translations = auxiliary_to_target(answers, aux_langs, tgt_lang, nllb, nllb_tokenizer, max_length)
                 save_to_pickle(answer_translations,
                                f"{base_dir}/{lang}/intermediate_files/{task}_{prompt_model_name}_{n_samples}_answer_translations.pkl")
                 torch.cuda.empty_cache()

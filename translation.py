@@ -5,7 +5,7 @@ from transformers import AutoTokenizer
 from config import *
 
 
-def translate_to_tgt_batched_ctranslate(source, src_lang, tgt_lang, nllb, nllb_tokenizer, batch_size=32,
+def translate_to_tgt_batched_ctranslate(source, src_lang, tgt_lang, nllb, nllb_tokenizer, batch_size=128,
                                         max_length=256):
     all_translated_texts = []
     nllb_tokenizer.src_lang = src_lang
@@ -25,13 +25,13 @@ def translate_to_tgt_batched_ctranslate(source, src_lang, tgt_lang, nllb, nllb_t
     return all_translated_texts
 
 
-def auxiliary_to_target(extracted_answers, aux_langs, nllb, nllb_tokenizer, max_length):
+def auxiliary_to_target(extracted_answers, aux_langs, tgt_lang, nllb, nllb_tokenizer, max_length):
     answers_aux_lang = list(zip(*extracted_answers))
     answer_translations = {}
 
     for p, l in tqdm(zip(answers_aux_lang, aux_langs)):
         answer_translations[l] = translate_to_tgt_batched_ctranslate(
-            p, l, "eng_Latn", nllb, nllb_tokenizer, batch_size=128, max_length=max_length
+            p, l, tgt_lang, nllb, nllb_tokenizer, batch_size=256, max_length=max_length
         )
 
     return answer_translations
