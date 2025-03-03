@@ -1,0 +1,12 @@
+ctranslate2==4.5.0
+datasets==3.3.2
+matplotlib==3.10.1
+numpy==2.2.3
+pandas==2.2.3
+scikit_learn==1.6.1
+seaborn==0.13.2
+sentence_transformers==3.4.1
+sglang==0.4.3.post2
+torch==2.5.1+cu124
+tqdm==4.67.1
+transformers==4.48.3
