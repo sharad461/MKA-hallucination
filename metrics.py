@@ -48,10 +48,10 @@ def process_answers(model_answers_translated, prompts, options, true_answers, pr
 
         final_answers_set = list(answers).copy()
         try:
-          correct_idx_in_answers = find_most_probable_answer(answers)
+            correct_idx_in_answers = find_most_probable_answer(answers)
         except ValueError as e:
-          print(f"{e}: {answers}")
-          correct_idx_in_answers = random.randrange(len(answers))
+            print(f"{e}: {answers}")
+            correct_idx_in_answers = random.randrange(len(answers))
 
         selected_model_answer = final_answers_set.pop(correct_idx_in_answers)
 
