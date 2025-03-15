@@ -8,11 +8,7 @@ similarity_model = 'paraphrase-multilingual-mpnet-base-v2'
 answer_similarity_threshold = 0.85
 
 prompt_instruction = """You are an expert assessment system. Analyze the question below, evaluate all choices, and select the most accurate answer.
-Instructions:
-1. Respond ONLY with the exact text of the correct answer, no additional text needed.
-2. Consider each option independently and thoroughly.
-3. Base your selection strictly on the information in the question.\n\n
-"""
+Respond ONLY with the correct answer, no additional info required.\n\n"""
 
 import torch
 
