@@ -22,7 +22,7 @@ huggingface-cli login --token $HF_TOKEN
 ### Run
 Supply the number of samples and the seed to use.
 ```shell
-bash run.sh 200 79 # n_samples, seed
+bash run.sh 200 97 # n_samples, seed
 ```
 
 ### Custom Setup
