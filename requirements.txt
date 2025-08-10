@@ -9,4 +9,4 @@ sentence_transformers==3.4.1
 sglang==0.4.3.post2
 torch==2.6.0
 tqdm==4.67.1
-transformers==4.48.3
+transformers==4.53.0
